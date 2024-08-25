@@ -1,41 +1,37 @@
 package com.yun.bi.backend.controller;
 
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yun.bi.backend.annotation.AuthCheck;
 import com.yun.bi.backend.common.BaseResponse;
 import com.yun.bi.backend.common.DeleteRequest;
 import com.yun.bi.backend.common.ErrorCode;
 import com.yun.bi.backend.common.ResultUtils;
-import com.yun.bi.backend.constant.FileConstant;
 import com.yun.bi.backend.constant.UserConstant;
 import com.yun.bi.backend.exception.BusinessException;
 import com.yun.bi.backend.exception.ThrowUtils;
-import com.yun.bi.backend.model.dto.chart.*;
-import com.yun.bi.backend.model.dto.file.UploadFileRequest;
+import com.yun.bi.backend.manager.AiManager;
+import com.yun.bi.backend.model.dto.chart.ChartAddRequest;
+import com.yun.bi.backend.model.dto.chart.ChartUpdateRequest;
+import com.yun.bi.backend.model.dto.chart.GenChartByAiRequest;
 import com.yun.bi.backend.model.entity.Chart;
 import com.yun.bi.backend.model.entity.User;
-import com.yun.bi.backend.model.enums.FileUploadBizEnum;
-import com.yun.bi.backend.model.vo.ChartVO;
+import com.yun.bi.backend.model.vo.BiResponse;
 import com.yun.bi.backend.service.ChartService;
 import com.yun.bi.backend.service.UserService;
 import com.yun.bi.backend.utils.ExcelUtils;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.util.List;
 
 /**
  * 图表接口
- *
  */
 @RestController
 @RequestMapping("/chart")
@@ -47,6 +43,8 @@ public class ChartController {
 
     @Resource
     private UserService userService;
+    @Resource
+    private AiManager aiManager;
 
     // region 增删改查
 
@@ -120,48 +118,58 @@ public class ChartController {
     }
 
     /**
-     *
      * 智能分析
+     *
      * @param multipartFile
      * @param genChartByAiRequest
      * @param request
      * @return
      */
     @PostMapping("/gen")
-    public BaseResponse<String> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
-                                           GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+    public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+                                                 GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();
-        ThrowUtils.throwIf(StringUtils.isBlank(goal),ErrorCode.PARAMS_ERROR,"目标为空");
-        ThrowUtils.throwIf(StringUtils.isNotBlank(name)&&name.length()>100,ErrorCode.PARAMS_ERROR,"名称过长");
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        User loginUser = userService.getLoginUser(request);
+        long modelId = 1827567275596046337L;
         //用户输入
         StringBuilder userInput = new StringBuilder();
-        userInput.append("你是一个数据分析师，接下来我会给你我的分析目标和原始数据，请告诉我分析结论。").append("\n");
-        userInput.append("分析目标:").append(goal).append("\n");
+        userInput.append("分析需求:").append("\n");
+        String userGoal = goal;
+        if (StringUtils.isNotBlank(chartType)) {
+            userGoal += "，请使用" + chartType;
+        }
+        userInput.append("分析目标:").append(userGoal).append("\n");
         //处理传过来的文件数据
-        String result = ExcelUtils.excelToCsv(multipartFile);
-        userInput.append("数据:").append(result).append("\n");
-        return ResultUtils.success(userInput.toString());
-//        User loginUser = userService.getLoginUser(request);
-//        String uuid = RandomStringUtils.randomAlphanumeric(8);
-//        String filename = uuid + "-" + multipartFile.getOriginalFilename();
-//        File file = null;
-//        try {
-//            // 返回可访问地址
-//            return ResultUtils.success("");
-//        } catch (Exception e) {
-////            log.error("file upload error, filepath = " + filepath, e);
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
-//        } finally {
-//            if (file != null) {
-//                // 删除临时文件
-//                boolean delete = file.delete();
-//                if (!delete) {
-////                    log.error("file delete error, filepath = {}", filepath);
-//                }
-//            }
-//        }
+        String csvData = ExcelUtils.excelToCsv(multipartFile);
+        userInput.append("原始数据:").append("\n");
+        userInput.append(csvData).append("\n");
+//        String result = aiManager.doChat(modelId, userInput.toString());
+        String result = "sdfos【【【【【spjidfwie【【【【【sodhfsdfhu";
+        String[] splits = result.split("【【【【【");
+        if (splits.length < 3){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"AI 生成错误");
+        }
+        String genChart = splits[1].trim();
+        String genResult = splits[2].trim();
+        Chart chart = new Chart();
+        chart.setChartType(chartType);
+        chart.setName(name);
+        chart.setUserId(loginUser.getId());
+        chart.setGoal(goal);
+        chart.setGenChart(genChart);
+        chart.setChartData(csvData);
+        chart.setGenResult(genResult);
+        boolean save = chartService.save(chart);
+        ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR,"图表保存失败");
+        BiResponse biResponse = new BiResponse();
+        biResponse.setGenResult(genResult);
+        biResponse.setGenChart(genChart);
+        biResponse.setChartId(chart.getId());
+        return ResultUtils.success(biResponse);
     }
 
 //

@@ -80,3 +80,7 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.yun.bi.backend.controller
+yuapi:
+  client:
+    access-key: pmrrg0cy2geire7ajnt6hctiq23ueb7x
+    secret-key: z00d6ux73o34wivie76ob261vs3xopz2
