@@ -1,5 +1,6 @@
 package com.yun.bi.backend.controller;
 
+import cn.hutool.core.io.FileUtil;
 import com.yun.bi.backend.annotation.AuthCheck;
 import com.yun.bi.backend.common.BaseResponse;
 import com.yun.bi.backend.common.DeleteRequest;
@@ -18,9 +19,7 @@ import com.yun.bi.backend.model.vo.BiResponse;
 import com.yun.bi.backend.service.ChartService;
 import com.yun.bi.backend.service.UserService;
 import com.yun.bi.backend.utils.ExcelUtils;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 图表接口
@@ -133,6 +133,14 @@ public class ChartController {
         String chartType = genChartByAiRequest.getChartType();
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        long size = multipartFile.getSize();
+        String originalFilename = multipartFile.getOriginalFilename();
+        final long ONE_MB = 1024 * 1024;
+        ThrowUtils.throwIf(size > ONE_MB,ErrorCode.PARAMS_ERROR,"文件超过1MB");
+        String suffix = FileUtil.getSuffix(originalFilename);
+        final List<String> validFileSuffixList = Arrays.asList("png", "jpg", "svg", "webp", "jpeg");
+        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
+
         User loginUser = userService.getLoginUser(request);
         long modelId = 1827567275596046337L;
         //用户输入
@@ -150,8 +158,8 @@ public class ChartController {
 //        String result = aiManager.doChat(modelId, userInput.toString());
         String result = "sdfos【【【【【spjidfwie【【【【【sodhfsdfhu";
         String[] splits = result.split("【【【【【");
-        if (splits.length < 3){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"AI 生成错误");
+        if (splits.length < 3) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成错误");
         }
         String genChart = splits[1].trim();
         String genResult = splits[2].trim();
@@ -164,7 +172,7 @@ public class ChartController {
         chart.setChartData(csvData);
         chart.setGenResult(genResult);
         boolean save = chartService.save(chart);
-        ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR,"图表保存失败");
+        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         BiResponse biResponse = new BiResponse();
         biResponse.setGenResult(genResult);
         biResponse.setGenChart(genChart);
