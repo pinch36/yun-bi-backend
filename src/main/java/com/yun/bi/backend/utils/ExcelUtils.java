@@ -28,13 +28,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExcelUtils {
     public static String excelToCsv(MultipartFile multipartFile){
-//        File file = null;
-//        try {
-//            file = ResourceUtils.getFile("classpath:test_excel.xlsx");
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-
         List<Map<Integer, String>> list = null;
         try {
             list = EasyExcel.read(multipartFile.getInputStream())

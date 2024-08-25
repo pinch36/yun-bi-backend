@@ -1,6 +1,7 @@
 package com.yun.bi.backend.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.db.sql.SqlExecutor;
 import com.yun.bi.backend.annotation.AuthCheck;
 import com.yun.bi.backend.common.BaseResponse;
 import com.yun.bi.backend.common.DeleteRequest;
@@ -27,6 +28,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,6 +49,8 @@ public class ChartController {
     private UserService userService;
     @Resource
     private AiManager aiManager;
+    @Resource
+    private DataSource ds;
 
     // region 增删改查
 
@@ -138,7 +144,7 @@ public class ChartController {
         final long ONE_MB = 1024 * 1024;
         ThrowUtils.throwIf(size > ONE_MB,ErrorCode.PARAMS_ERROR,"文件超过1MB");
         String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("png", "jpg", "svg", "webp", "jpeg");
+        final List<String> validFileSuffixList = Arrays.asList("png", "jpg", "svg", "webp", "jpeg","xlsx");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
 
         User loginUser = userService.getLoginUser(request);
@@ -169,6 +175,22 @@ public class ChartController {
         chart.setUserId(loginUser.getId());
         chart.setGoal(goal);
         chart.setGenChart(genChart);
+
+        //TODO 区分文件大小后分表存储
+//        String genTable = "create table chart_"+chart.getId()+"\n" +
+//                "(\n" +
+//                "  日期  int null,\n" +
+//                "  用户数 int null\n" +
+//                ");\n";
+//        Connection conn = null;
+//        try {
+//            conn = ds.getConnection();
+//            // 执行非查询语句，返回影响的行数
+//            int count = SqlExecutor.execute(conn,genTable);
+//            log.info("影响行数：{}", count);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
         chart.setChartData(csvData);
         chart.setGenResult(genResult);
         boolean save = chartService.save(chart);
