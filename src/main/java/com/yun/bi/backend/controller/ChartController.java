@@ -1,7 +1,6 @@
 package com.yun.bi.backend.controller;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.db.sql.SqlExecutor;
 import com.yun.bi.backend.annotation.AuthCheck;
 import com.yun.bi.backend.common.BaseResponse;
 import com.yun.bi.backend.common.DeleteRequest;
@@ -11,6 +10,7 @@ import com.yun.bi.backend.constant.UserConstant;
 import com.yun.bi.backend.exception.BusinessException;
 import com.yun.bi.backend.exception.ThrowUtils;
 import com.yun.bi.backend.manager.AiManager;
+import com.yun.bi.backend.manager.RedisLimiterManager;
 import com.yun.bi.backend.model.dto.chart.ChartAddRequest;
 import com.yun.bi.backend.model.dto.chart.ChartUpdateRequest;
 import com.yun.bi.backend.model.dto.chart.GenChartByAiRequest;
@@ -29,8 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,6 +49,8 @@ public class ChartController {
     private AiManager aiManager;
     @Resource
     private DataSource ds;
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
 
     // region 增删改查
 
@@ -142,12 +142,12 @@ public class ChartController {
         long size = multipartFile.getSize();
         String originalFilename = multipartFile.getOriginalFilename();
         final long ONE_MB = 1024 * 1024;
-        ThrowUtils.throwIf(size > ONE_MB,ErrorCode.PARAMS_ERROR,"文件超过1MB");
+        ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过1MB");
         String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("png", "jpg", "svg", "webp", "jpeg","xlsx");
-        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
-
+        final List<String> validFileSuffixList = Arrays.asList("png", "jpg", "svg", "webp", "jpeg", "xlsx");
+        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
         User loginUser = userService.getLoginUser(request);
+        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         long modelId = 1827567275596046337L;
         //用户输入
         StringBuilder userInput = new StringBuilder();
