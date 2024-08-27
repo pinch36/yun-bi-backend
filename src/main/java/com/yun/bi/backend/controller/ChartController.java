@@ -271,6 +271,7 @@ public class ChartController {
             String genChart = splits[1].trim();
             String genResult = splits[2].trim();
             Chart updateChartResult = new Chart();
+            updateChartResult.setId(chart.getId());
             updateChartResult.setChartType(chartType);
             updateChartResult.setUserId(loginUser.getId());
             updateChartResult.setGenChart(genChart);
