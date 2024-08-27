@@ -144,7 +144,7 @@ public class ChartController {
         final long ONE_MB = 1024 * 1024;
         ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过1MB");
         String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("png", "jpg", "svg", "webp", "jpeg", "xlsx");
+        final List<String> validFileSuffixList = Arrays.asList("xls", "xlsx");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
         User loginUser = userService.getLoginUser(request);
         redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
