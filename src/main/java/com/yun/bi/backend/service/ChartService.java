@@ -1,8 +1,14 @@
 package com.yun.bi.backend.service;
 
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yun.bi.backend.model.dto.chart.ChartQueryRequest;
 import com.yun.bi.backend.model.entity.Chart;
+import com.yun.bi.backend.model.vo.ChartVO;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author ylw16
@@ -11,4 +17,11 @@ import com.yun.bi.backend.model.entity.Chart;
 */
 public interface ChartService extends IService<Chart> {
 
+    ChartVO getChartVO(Chart chart, HttpServletRequest request);
+
+    Wrapper<Chart> getQueryWrapper(ChartQueryRequest chartQueryRequest);
+
+    Page<ChartVO> getChartVOPage(Page<Chart> chartPage, HttpServletRequest request);
+
+    void validChart(Chart chart, boolean b);
 }

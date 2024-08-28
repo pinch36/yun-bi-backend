@@ -1,6 +1,8 @@
 package com.yun.bi.backend.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yun.bi.backend.annotation.AuthCheck;
 import com.yun.bi.backend.bizmq.BiMessageProducer;
 import com.yun.bi.backend.common.BaseResponse;
@@ -13,12 +15,11 @@ import com.yun.bi.backend.exception.BusinessException;
 import com.yun.bi.backend.exception.ThrowUtils;
 import com.yun.bi.backend.manager.AiManager;
 import com.yun.bi.backend.manager.RedisLimiterManager;
-import com.yun.bi.backend.model.dto.chart.ChartAddRequest;
-import com.yun.bi.backend.model.dto.chart.ChartUpdateRequest;
-import com.yun.bi.backend.model.dto.chart.GenChartByAiRequest;
+import com.yun.bi.backend.model.dto.chart.*;
 import com.yun.bi.backend.model.entity.Chart;
 import com.yun.bi.backend.model.entity.User;
 import com.yun.bi.backend.model.vo.BiResponse;
+import com.yun.bi.backend.model.vo.ChartVO;
 import com.yun.bi.backend.service.ChartService;
 import com.yun.bi.backend.service.UserService;
 import com.yun.bi.backend.utils.ExcelUtils;
@@ -373,85 +374,85 @@ public class ChartController {
             log.error("更新图表状态为失败失败:{},{}",chartId,e);
         }
     }
-//
-//    /**
-//     * 根据 id 获取
-//     *
-//     * @param id
-//     * @return
-//     */
-//    @GetMapping("/get/vo")
-//    public BaseResponse<ChartVO> getChartVOById(long id, HttpServletRequest request) {
-//        if (id <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        Chart chart = chartService.getById(id);
-//        if (chart == null) {
-//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-//        }
-//        return ResultUtils.success(chartService.getChartVO(chart, request));
-//    }
-//
-//    /**
-//     * 分页获取列表（仅管理员）
-//     *
-//     * @param chartQueryRequest
-//     * @return
-//     */
-//    @PostMapping("/list/page")
-//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-//    public BaseResponse<Page<Chart>> listChartByPage(@RequestBody ChartQueryRequest chartQueryRequest) {
-//        long current = chartQueryRequest.getCurrent();
-//        long size = chartQueryRequest.getPageSize();
-//        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
-//                chartService.getQueryWrapper(chartQueryRequest));
-//        return ResultUtils.success(chartPage);
-//    }
-//
-//    /**
-//     * 分页获取列表（封装类）
-//     *
-//     * @param chartQueryRequest
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/list/page/vo")
-//    public BaseResponse<Page<ChartVO>> listChartVOByPage(@RequestBody ChartQueryRequest chartQueryRequest,
-//            HttpServletRequest request) {
-//        long current = chartQueryRequest.getCurrent();
-//        long size = chartQueryRequest.getPageSize();
-//        // 限制爬虫
-//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-//        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
-//                chartService.getQueryWrapper(chartQueryRequest));
-//        return ResultUtils.success(chartService.getChartVOPage(chartPage, request));
-//    }
-//
-//    /**
-//     * 分页获取当前用户创建的资源列表
-//     *
-//     * @param chartQueryRequest
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/my/list/page/vo")
-//    public BaseResponse<Page<ChartVO>> listMyChartVOByPage(@RequestBody ChartQueryRequest chartQueryRequest,
-//            HttpServletRequest request) {
-//        if (chartQueryRequest == null) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        User loginUser = userService.getLoginUser(request);
-//        chartQueryRequest.setUserId(loginUser.getId());
-//        long current = chartQueryRequest.getCurrent();
-//        long size = chartQueryRequest.getPageSize();
-//        // 限制爬虫
-//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-//        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
-//                chartService.getQueryWrapper(chartQueryRequest));
-//        return ResultUtils.success(chartService.getChartVOPage(chartPage, request));
-//    }
-//
-//    // endregion
+
+    /**
+     * 根据 id 获取
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/get/vo")
+    public BaseResponse<ChartVO> getChartVOById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Chart chart = chartService.getById(id);
+        if (chart == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return ResultUtils.success(chartService.getChartVO(chart, request));
+    }
+
+    /**
+     * 分页获取列表（仅管理员）
+     *
+     * @param chartQueryRequest
+     * @return
+     */
+    @PostMapping("/list/page")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<Chart>> listChartByPage(@RequestBody ChartQueryRequest chartQueryRequest) {
+        long current = chartQueryRequest.getCurrent();
+        long size = chartQueryRequest.getPageSize();
+        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
+                chartService.getQueryWrapper(chartQueryRequest));
+        return ResultUtils.success(chartPage);
+    }
+
+    /**
+     * 分页获取列表（封装类）
+     *
+     * @param chartQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/list/page/vo")
+    public BaseResponse<Page<ChartVO>> listChartVOByPage(@RequestBody ChartQueryRequest chartQueryRequest,
+            HttpServletRequest request) {
+        long current = chartQueryRequest.getCurrent();
+        long size = chartQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
+                chartService.getQueryWrapper(chartQueryRequest));
+        return ResultUtils.success(chartService.getChartVOPage(chartPage, request));
+    }
+
+    /**
+     * 分页获取当前用户创建的资源列表
+     *
+     * @param chartQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/my/list/page/vo")
+    public BaseResponse<Page<ChartVO>> listMyChartVOByPage(@RequestBody ChartQueryRequest chartQueryRequest,
+            HttpServletRequest request) {
+        if (chartQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        chartQueryRequest.setUserId(loginUser.getId());
+        long current = chartQueryRequest.getCurrent();
+        long size = chartQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
+                chartService.getQueryWrapper(chartQueryRequest));
+        return ResultUtils.success(chartService.getChartVOPage(chartPage, request));
+    }
+
+    // endregion
 //
 //    /**
 //     * 分页搜索（从 ES 查询，封装类）
@@ -469,38 +470,34 @@ public class ChartController {
 //        Page<Chart> chartPage = chartService.searchFromEs(chartQueryRequest);
 //        return ResultUtils.success(chartService.getChartVOPage(chartPage, request));
 //    }
-//
-//    /**
-//     * 编辑（用户）
-//     *
-//     * @param chartEditRequest
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/edit")
-//    public BaseResponse<Boolean> editChart(@RequestBody ChartEditRequest chartEditRequest, HttpServletRequest request) {
-//        if (chartEditRequest == null || chartEditRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        Chart chart = new Chart();
-//        BeanUtils.copyProperties(chartEditRequest, chart);
-//        List<String> tags = chartEditRequest.getTags();
-//        if (tags != null) {
-//            chart.setTags(JSONUtil.toJsonStr(tags));
-//        }
-//        // 参数校验
-//        chartService.validChart(chart, false);
-//        User loginUser = userService.getLoginUser(request);
-//        long id = chartEditRequest.getId();
-//        // 判断是否存在
-//        Chart oldChart = chartService.getById(id);
-//        ThrowUtils.throwIf(oldChart == null, ErrorCode.NOT_FOUND_ERROR);
-//        // 仅本人或管理员可编辑
-//        if (!oldChart.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-//            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-//        }
-//        boolean result = chartService.updateById(chart);
-//        return ResultUtils.success(result);
-//    }
+
+    /**
+     * 编辑（用户）
+     *
+     * @param chartEditRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/edit")
+    public BaseResponse<Boolean> editChart(@RequestBody ChartEditRequest chartEditRequest, HttpServletRequest request) {
+        if (chartEditRequest == null || chartEditRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Chart chart = new Chart();
+        BeanUtils.copyProperties(chartEditRequest, chart);
+        // 参数校验
+        chartService.validChart(chart, false);
+        User loginUser = userService.getLoginUser(request);
+        long id = chartEditRequest.getId();
+        // 判断是否存在
+        Chart oldChart = chartService.getById(id);
+        ThrowUtils.throwIf(oldChart == null, ErrorCode.NOT_FOUND_ERROR);
+        // 仅本人或管理员可编辑
+        if (!oldChart.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        boolean result = chartService.updateById(chart);
+        return ResultUtils.success(result);
+    }
 
 }
