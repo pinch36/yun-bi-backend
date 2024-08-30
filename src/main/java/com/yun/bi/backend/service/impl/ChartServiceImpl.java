@@ -9,6 +9,9 @@ import com.yun.bi.backend.model.entity.Chart;
 import com.yun.bi.backend.model.vo.ChartVO;
 import com.yun.bi.backend.service.ChartService;
 import com.yun.bi.backend.mapper.ChartMapper;
+import io.netty.util.internal.ObjectUtil;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -35,11 +38,16 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
     @Override
     public Wrapper<Chart> getQueryWrapper(ChartQueryRequest chartQueryRequest) {
         QueryWrapper<Chart> chartQueryWrapper = new QueryWrapper<>();
-        chartQueryWrapper.eq("id",chartQueryRequest.getId())
-                .eq("userId",chartQueryRequest.getUserId())
-                .like("name",chartQueryRequest.getName())
-                .like("goal",chartQueryRequest.getGoal())
-                .like("chartType",chartQueryRequest.getChartType());
+        Long id = chartQueryRequest.getId();
+        Long userId = chartQueryRequest.getUserId();
+        String name = chartQueryRequest.getName();
+        String goal = chartQueryRequest.getGoal();
+        String chartType = chartQueryRequest.getChartType();
+        chartQueryWrapper.eq(ObjectUtils.isNotEmpty(id),"id", id)
+                .eq(ObjectUtils.isNotEmpty(userId),"userId", userId)
+                .like(StringUtils.isNotBlank(name),"name", name)
+                .like(StringUtils.isNotBlank(goal),"goal", goal)
+                .like(StringUtils.isNotBlank(chartType),"chartType", chartType);
         return chartQueryWrapper;
     }
 
