@@ -30,9 +30,7 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
 
     @Override
     public ChartVO getChartVO(Chart chart, HttpServletRequest request) {
-        ChartVO chartVO = new ChartVO();
-        BeanUtils.copyProperties(chart, chartVO);
-        return chartVO;
+        return ChartVO.objToVo(chart);
     }
 
     @Override

@@ -1,7 +1,10 @@
 package com.yun.bi.backend.model.vo;
 
 import cn.hutool.json.JSONUtil;
-import com.yun.bi.backend.model.entity.Post;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.yun.bi.backend.model.entity.Chart;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -23,24 +26,44 @@ public class ChartVO implements Serializable {
     private Long id;
 
     /**
-     * 标题
+     * 图标名称
      */
-    private String title;
+    private String name;
 
     /**
-     * 内容
+     * 分析目标
      */
-    private String content;
+    private String goal;
 
     /**
-     * 点赞数
+     * 图表数据
      */
-    private Integer thumbNum;
+    private String chartData;
 
     /**
-     * 收藏数
+     * 图表类型
      */
-    private Integer favourNum;
+    private String chartType;
+
+    /**
+     * 生成的图表数据
+     */
+    private String genChart;
+
+    /**
+     * 生成的分析结论
+     */
+    private String genResult;
+
+    /**
+     * 任务状态
+     */
+    private String status;
+
+    /**
+     * 执行信息
+     */
+    private String execMessage;
 
     /**
      * 创建用户 id
@@ -48,65 +71,32 @@ public class ChartVO implements Serializable {
     private Long userId;
 
     /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-
-    /**
-     * 标签列表
-     */
-    private List<String> tagList;
-
-    /**
-     * 创建人信息
-     */
-    private UserVO user;
-
-    /**
-     * 是否已点赞
-     */
-    private Boolean hasThumb;
-
-    /**
-     * 是否已收藏
-     */
-    private Boolean hasFavour;
-
-    /**
      * 包装类转对象
      *
-     * @param postVO
+     * @param chartVO
      * @return
      */
-    public static Post voToObj(ChartVO postVO) {
-        if (postVO == null) {
+    public static Chart voToObj(ChartVO chartVO) {
+        if (chartVO == null) {
             return null;
         }
-        Post post = new Post();
-        BeanUtils.copyProperties(postVO, post);
-        List<String> tagList = postVO.getTagList();
-        post.setTags(JSONUtil.toJsonStr(tagList));
-        return post;
+        Chart chart = new Chart();
+        BeanUtils.copyProperties(chartVO, chart);
+        return chart;
     }
 
     /**
      * 对象转包装类
      *
-     * @param post
+     * @param chart
      * @return
      */
-    public static ChartVO objToVo(Post post) {
-        if (post == null) {
+    public static ChartVO objToVo(Chart chart) {
+        if (chart == null) {
             return null;
         }
-        ChartVO postVO = new ChartVO();
-        BeanUtils.copyProperties(post, postVO);
-        postVO.setTagList(JSONUtil.toList(post.getTags(), String.class));
-        return postVO;
+        ChartVO chartVO = new ChartVO();
+        BeanUtils.copyProperties(chart, chartVO);
+        return chartVO;
     }
 }
